@@ -1,0 +1,140 @@
+---
+title: "project"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r }
+
+airtraffic<-read.csv("/Users/Sumi/Downloads/Air_Traffic_Passenger_Statistics.csv",sep = ",",header = T)
+dim(airtraffic)
+colnames(airtraffic)
+head(airtraffic)
+str(airtraffic)
+summary(airtraffic)
+data.frame(colSums(is.na(airtraffic)))
+
+airtraffic_1<-as.data.frame(airtraffic)
+airtraffic_1<-airtraffic_1[ ,-c(2,3,5,11)]
+head(airtraffic_1)
+
+
+
+library(lubridate)
+airtraffic_1$Activity.Period<-ymd(airtraffic_1$Activity.Period,truncated = 1)
+head(airtraffic_1)
+class(airtraffic_1$Activity.Period)
+
+df<-airtraffic_1[,c(1,8)]
+head(df)
+class(df)
+df$year<-year(df$Activity.Period)
+df$month<-month(df$Activity.Period)
+plot(df$year,df$Passenger.Count,type = "b")
+library(ggplot2)
+qplot(Activity.Period,Passenger.Count,geom = "line",data=df)
+
+summarise_at(group_by(df,month),vars(Passenger.Count),funs(sum(.,na.rm=TRUE)))
+
+#year Vs passenger count
+summarise_at(group_by(df,year),vars(Passenger.Count),funs(sum(.,na.rm=TRUE)))
+
+
+#plot(sum_month,sum_year)
+#library(dplyr)
+
+summarise_at(group_by(df,month),vars(Passenger.Count),funs(mean(.,na.rm=TRUE)))
+summarise_at(group_by(df,year),vars(Passenger.Count),funs(mean(.,na.rm=TRUE)))
+
+min(df$Activity.Period)
+max(df$Activity.Period)
+min(df$Activity.Period)-max(df$Activity.Period)
+
+
+df1<-airtraffic_1[,c(1,2,8)]
+head(df1)
+class(df1$Activity.Period)
+#df1$Activity.Period<-ymd(df1$Activity.Period,truncated = 1)
+df1$year<-year(df1$Activity.Period)
+df1=df1[,-c(1)]
+
+summarise_at(group_by(df1,Published.Airline),vars(Passenger.Count),funs(sum(.,na.rm=TRUE)))
+summarise_at(group_by(df1,year),vars(Passenger.Count),funs(sum(.,na.rm=TRUE)))
+df1 %>%   group_by(Published.Airline,year) %>%   summarise_each(funs(sum))
+
+df2<-df[,c(1,2)]
+head(df2)
+dff<-summarise_at(group_by(df2,Activity.Period),vars(Passenger.Count),funs(sum(.,na.rm=TRUE)))
+head(dff)
+#plot pass Vs act period 2005-2019
+plot(dff,type="l")  #needed
+class(dff)
+
+library(tseries)
+dfs<-ts(dff$Passenger.Count,start = c(2005,07),end = c(2019,09),frequency = 12)
+dfs
+class(dfs)
+plot(dfs)
+abline(reg = lm(dfs~time(dfs)))
+lm(dfs~time(dfs))
+cycle(dfs)
+
+
+#ARIMA MODEL
+# trend
+# seasonality
+# irregularity
+boxplot(dfs~cycle(dfs)) # highest
+plot((log(dfs)))
+plot(diff(log(dfs)))
+trends<-decompose(dfs,type = "multiplicative")
+plot(trends)
+
+
+#stationarity test
+
+# H0: non-stationary p-value<.05
+#H1:stationary p-value >.05
+adf.test(dfs)
+
+# H0: stationary p-value<.05
+#H1:non-stationary p-value >.05
+
+kpss.test(dfs)
+plot(dfs)
+abline(reg = lm(dfs~time(dfs)))
+
+
+#forecasting
+library(forecast)
+
+# p,d,q values
+acf(dfs)
+acf(diff(log(dfs)))
+
+acf(dfs)
+acf(diff(log(dfs)))
+d=1 # 98
+q=0 #116,117
+
+model=arima(dfs,order = c(0,1,0))
+
+
+forecast(model,24)
+
+
+
+
+```
+
