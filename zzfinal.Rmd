@@ -137,17 +137,17 @@ plot(dfs)
 
 # H0: non-stationary p-value<.05
 #H1:stationary p-value >.05
-adf.test(dfs)
+adf.test(ts)
 
 # H0: stationary p-value<.05
 #H1:non-stationary p-value >.05
 
-kpss.test(dfs)
-plot(dfs)
-abline(reg = lm(dfs~time(dfs )))
-plot((log(dfs)))
-plot(diff(log(dfs)))
-trends<-decompose(dfs,type = "multiplicative")
+kpss.test(ts)
+plot(ts)
+abline(reg = lm(ts~time(ts )))
+plot((log(ts)))
+plot(diff(log(ts)))
+trends<-decompose(ts,type = "multiplicative")
 plot(trends)
 
 
